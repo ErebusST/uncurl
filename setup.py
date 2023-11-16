@@ -3,11 +3,11 @@ from setuptools import setup, find_packages
 
 setup(
     name='uncurl',
-    version='0.0.11',
+    version='0.0.12',
     description='A library to convert curl requests to python-requests.',
-    author='Steve Pulec',
-    author_email='spulec@gmail.com',
-    url='https://github.com/spulec/uncurl',
+    author='ErebusST',
+    author_email='situbin@foxmail.com',
+    url='https://github.com/ErebusST/uncurl',
     entry_points={
         'console_scripts': [
             'uncurl = uncurl.bin:main',
