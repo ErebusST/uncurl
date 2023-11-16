@@ -10,7 +10,7 @@ from six.moves import http_cookies as Cookie
 parser = argparse.ArgumentParser()
 parser.add_argument('command')
 parser.add_argument('url')
-parser.add_argument('-d', '--data')
+parser.add_argument('-d', '--data', '--data-urlencode')
 parser.add_argument('-b', '--data-binary', '--data-raw', default=None)
 parser.add_argument('-X', default='')
 parser.add_argument('-H', '--header', action='append', default=[])
