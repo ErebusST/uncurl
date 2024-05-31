@@ -15,10 +15,10 @@ parser.add_argument('-b', '--data-binary', '--data-raw', default=None)
 parser.add_argument('-X', default='')
 parser.add_argument('-H', '--header', action='append', default=[])
 parser.add_argument('--compressed', action='store_true')
-parser.add_argument('-k','--insecure', action='store_true')
+parser.add_argument('-k', '--insecure', action='store_true')
 parser.add_argument('--user', '-u', default=())
-parser.add_argument('-i','--include', action='store_true')
-parser.add_argument('-s','--silent', action='store_true')
+parser.add_argument('-i', '--include', action='store_true')
+parser.add_argument('-s', '--silent', action='store_true')
 parser.add_argument('-x', '--proxy', default={})
 parser.add_argument('-U', '--proxy-user', default='')
 
@@ -31,7 +31,7 @@ def normalize_newlines(multiline_text):
     return multiline_text.replace(" \\\n", " ")
 
 
-def parse_context(curl_command):
+def parse_context(curl_command: str):
     method = "get"
 
     tokens = shlex.split(normalize_newlines(curl_command))
@@ -40,6 +40,12 @@ def parse_context(curl_command):
     post_data = parsed_args.data or parsed_args.data_binary
     if post_data:
         method = 'post'
+        try:
+            post_data = json.loads(post_data)
+        except Exception as e:
+            post_data = __get_request_data(curl_command)
+            if post_data is None:
+                post_data = parsed_args.data or parsed_args.data_binary
 
     if parsed_args.X:
         method = parsed_args.X.lower()
@@ -103,12 +109,12 @@ def parse(curl_command, **kargs):
     if parsed_context.verify:
         verify_token = '\n{}verify=False'.format(BASE_INDENT)
 
-    requests_kargs=''
-    for k,v in sorted(kargs.items()):
-        requests_kargs += "{}{}={},\n".format(BASE_INDENT,k,str(v))
+    requests_kargs = ''
+    for k, v in sorted(kargs.items()):
+        requests_kargs += "{}{}={},\n".format(BASE_INDENT, k, str(v))
 
-    #auth_data = f'{BASE_INDENT}auth={parsed_context.auth}'
-    auth_data = "{}auth={}".format(BASE_INDENT,parsed_context.auth)
+    # auth_data = f'{BASE_INDENT}auth={parsed_context.auth}'
+    auth_data = "{}auth={}".format(BASE_INDENT, parsed_context.auth)
     proxy_data = "\n{}proxies={}".format(BASE_INDENT, parsed_context.proxy)
 
     formatter = {
@@ -130,10 +136,31 @@ def parse(curl_command, **kargs):
 )""".format(**formatter)
 
 
+def __get_request_data(curl_command: str):
+    data = ""
+    for temp in curl_command.split(" -"):
+        temp = str(temp)
+        if temp.startswith("-data-binary "):
+            data = temp.replace("-data-binary ", "")
+            break
+        if temp.startswith("b "):
+            data = temp.replace("b ", "")
+            break
+        if temp.startswith("-data-raw "):
+            data = temp.replace("-data-raw ", "")
+            break
+    try:
+        if len(data) > 0:
+            return json.loads(data[1:len(data)-1])
+        else:
+            return None
+    except Exception as e:
+        return None
+
+
 def dict_to_pretty_string(the_dict, indent=4):
     if not the_dict:
         return "{}"
 
     return ("\n" + " " * indent).join(
         json.dumps(the_dict, sort_keys=True, indent=indent, separators=(',', ': ')).splitlines())
-
