@@ -28,14 +28,21 @@ ParsedContext = namedtuple('ParsedContext', ['method', 'url', 'data', 'headers',
 
 
 def normalize_newlines(multiline_text):
-    return multiline_text.replace(" \\\n", " ")
+    return multiline_text.replace(" \\\n", " ").replace("\\", "")
 
 
 def parse_context(curl_command: str):
     method = "get"
 
     tokens = shlex.split(normalize_newlines(curl_command))
-    parsed_args = parser.parse_args(tokens)
+    parsed_args = []
+    try:
+        parsed_args = parser.parse_args(tokens)
+    except Exception as e:
+        curl_command = ''.join(
+            f" {token} " if token.startswith("-") else f'"{token.strip()}"' for token in tokens).strip()
+        tokens = shlex.split(normalize_newlines(curl_command))
+        parsed_args = parser.parse_args(tokens)
 
     post_data = parsed_args.data or parsed_args.data_binary
     if post_data:
@@ -151,7 +158,7 @@ def __get_request_data(curl_command: str):
             break
     try:
         if len(data) > 0:
-            return json.loads(data[1:len(data)-1])
+            return json.loads(data[1:len(data) - 1])
         else:
             return None
     except Exception as e:
