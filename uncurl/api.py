@@ -28,7 +28,7 @@ ParsedContext = namedtuple('ParsedContext', ['method', 'url', 'data', 'headers',
 
 
 def normalize_newlines(multiline_text):
-    return multiline_text.replace(" \\\n", " ").replace("\\", "")
+    return multiline_text.replace(" \\\n", " ").replace("\\ ", " ")
 
 
 def parse_context(curl_command: str):
