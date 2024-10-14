@@ -84,7 +84,6 @@ def try_get_arg(index, tokens):
 
 def parse_context(curl_command: str):
     method = "get"
-    get_args(curl_command)
     tokens = get_args(curl_command)
     parsed_args = []
     try:
