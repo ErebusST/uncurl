@@ -31,17 +31,68 @@ def normalize_newlines(multiline_text):
     return multiline_text.replace(" \\\n", " ").replace("\\ ", " ")
 
 
+def get_args(curl_command: str):
+    tokens = shlex.split(normalize_newlines(curl_command))
+    tokens_length = len(tokens)
+    if tokens_length == 0:
+        return tokens
+
+    # first_arg_index = next((i for i, token in enumerate(tokens) if token.startswith("-")), None)
+
+    arg_name_index = [index for index, token in enumerate(tokens) if token.startswith("-")]
+    fix_tokens = []
+
+    index = 0
+    while True:
+        token = try_get(index, tokens)
+        if token is None:
+            break
+        if index not in arg_name_index:
+            fix_tokens.append(token)
+            index = index + 1
+        else:
+            fix_tokens.append(token)
+            # 此时 应一直往下去 ，直到 结尾或者取到下一个 以 - 开头的，中间的部分都应拼接起来作为上一个的arg
+            index = index + 1
+            arg, index = try_get_arg(index, tokens)
+            fix_tokens.append(arg)
+    return fix_tokens
+
+
+def has_next(index, length):
+    return index + 1 < length
+
+
+def try_get(index, tokens: list):
+    if index >= len(tokens):
+        return None
+    else:
+        return tokens[index]
+
+
+def try_get_arg(index, tokens):
+    args = []
+    while True:
+        arg = try_get(index, tokens)
+        if arg is None or arg.startswith("-"):
+            break
+        else:
+            args.append(arg)
+            index = index + 1
+    return "".join(args), index
+
+
 def parse_context(curl_command: str):
     method = "get"
-
-    tokens = shlex.split(normalize_newlines(curl_command))
+    get_args(curl_command)
+    tokens = get_args(curl_command)
     parsed_args = []
     try:
         parsed_args = parser.parse_args(tokens)
     except Exception as e:
         curl_command = ''.join(
             f" {token} " if token.startswith("-") else f'"{token.strip()}"' for token in tokens).strip()
-        tokens = shlex.split(normalize_newlines(curl_command))
+        tokens = get_args(curl_command)
         parsed_args = parser.parse_args(tokens)
 
     post_data = parsed_args.data or parsed_args.data_binary
