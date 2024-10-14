@@ -31,6 +31,9 @@ def normalize_newlines(multiline_text):
     return multiline_text.replace(" \\\n", " ").replace("\\ ", " ")
 
 
+skip_arg_name: list = ["-X"]
+
+
 def get_args(curl_command: str):
     tokens = shlex.split(normalize_newlines(curl_command))
     tokens_length = len(tokens)
@@ -47,7 +50,7 @@ def get_args(curl_command: str):
         token = try_get(index, tokens)
         if token is None:
             break
-        if index not in arg_name_index:
+        if index not in arg_name_index or token in skip_arg_name:
             fix_tokens.append(token)
             index = index + 1
         else:
