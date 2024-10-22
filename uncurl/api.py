@@ -31,7 +31,7 @@ def normalize_newlines(multiline_text):
     return multiline_text.replace(" \\\n", " ").replace("\\ ", " ")
 
 
-skip_arg_name: list = ["-X"]
+skip_arg_name: list = ["-X","--compressed"]
 
 
 def get_args(curl_command: str):
